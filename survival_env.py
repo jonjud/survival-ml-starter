@@ -28,6 +28,25 @@ class SurvivalEnv:
         # state = (agent_x, agent_y, food_x, food_y, energy, water)
         self.n_states = size**4 * (max_energy + 1) * (self.max_water + 1)
 
+    # ---- state as a vector of numbers (for the neural network, dqn_train.py) ----
+    N_FEATURES = 10
+
+    def observation(self):
+        """Everything the agent can see, scaled to roughly 0..1 / -1..1.
+
+        Note the *relative* features (direction to food / water): handing the
+        network these directly makes learning much easier than raw positions.
+        """
+        d = max(self.size - 1, 1)
+        wx, wy = self.water_pos
+        return [
+            self.ax / d, self.ay / d,
+            self.fx / d, self.fy / d,
+            (self.fx - self.ax) / d, (self.fy - self.ay) / d,
+            (wx - self.ax) / d, (wy - self.ay) / d,
+            self.energy / self.max_energy, self.water / self.max_water,
+        ]
+
     # ---- state encoding: tuple -> single integer index (for the Q-table) ----
     def _encode(self):
         s = self.size
